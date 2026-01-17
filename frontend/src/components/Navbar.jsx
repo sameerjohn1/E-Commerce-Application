@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { navbarStyles } from "../assets/dummyStyles";
-import { BaggageClaim, Clock, User } from "lucide-react";
+import { BaggageClaim, Clock, Menu, User, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../CartContext";
 
@@ -139,8 +139,73 @@ const Navbar = () => {
                 <span className={navbarStyles.accountText}>Logout</span>
               </button>
             )}
+
+            {/* mobile toggle */}
+            <div className={navbarStyles.mobileMenuButton}>
+              <button
+                onClick={() => setOpen(!open)}
+                className={navbarStyles.mobileMenuButton}
+              >
+                {open ? (
+                  <X className={navbarStyles.menuIcon} />
+                ) : (
+                  <Menu className={navbarStyles.menuIcon} />
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* mobile navigation */}
+        {open && (
+          <div className={navbarStyles.mobileNav}>
+            <div className={navbarStyles.mobileMenuContainer}>
+              {navItems.map((item) => {
+                const isActive = active === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => handleNavClick(item.href)}
+                    className={`${navbarStyles.mobileNavItemBase} ${
+                      isActive
+                        ? navbarStyles.mobileNavItemActive
+                        : navbarStyles.mobileNavItemInactive
+                    }`}
+                  >
+                    <span className={navbarStyles.mobileNavItemText}>
+                      {item.name}
+                    </span>
+                  </Link>
+                );
+              })}
+
+              <div className={navbarStyles.mobileAccountContainer}>
+                {!loggedIn ? (
+                  <Link
+                    to={"/login"}
+                    onClick={() => {
+                      setOpen(false);
+                      handleNavClick("/");
+                    }}
+                    className={navbarStyles.mobileAccountLink}
+                  >
+                    <User className={navbarStyles.mobileAccountIcon} />
+                    <span>Account</span>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleLogout}
+                    className={navbarStyles.mobileAccountButton}
+                  >
+                    <User className={navbarStyles.mobileAccountIcon} />
+                    <span>Logout</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
     </header>
   );
