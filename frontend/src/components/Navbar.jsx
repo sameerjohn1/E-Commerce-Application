@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { navbarStyles } from "../assets/dummyStyles";
-import { BaggageClaim, Clock } from "lucide-react";
+import { BaggageClaim, Clock, User } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useCart } from "../CartContext";
 
 const navItems = [
   { name: "Home", href: "/" },
@@ -15,9 +16,54 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [active, setActive] = useState(location.pathname || "/");
 
+  const { totalItems } = useCart();
+  const [loggedIn, setLoggedIn] = useState(() => {
+    try {
+      return (
+        localStorage.getItem("isLoggedIn") === "true" ||
+        !!localStorage.getItem("authToken")
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    setActive(location.pathname || "/");
+  }, [location]);
+
+  //   to keep user logged in for all pages
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === "isLoggedIn" || e.key === "authToken") {
+        try {
+          const isNowLoggedIn =
+            localStorage.getItem("isLoggedIn") === "true" ||
+            !!localStorage.getItem("authToken");
+          setLoggedIn(isNowLoggedIn);
+        } catch {
+          setLoggedIn(false);
+        }
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const handleNavClick = (href) => {
     setActive(href);
     setOpen(false);
+  };
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("authToken");
+    } catch {
+      setLoggedIn(false);
+      setOpen(false);
+      navigate("/");
+    }
   };
   return (
     <header className={navbarStyles.header}>
@@ -74,7 +120,25 @@ const Navbar = () => {
           <div className={navbarStyles.rightActions}>
             <Link to={"/cart"} className={navbarStyles.cartLink}>
               <BaggageClaim className={navbarStyles.cartIcon} />
+              {totalItems > 0 && (
+                <span className={navbarStyles.cartBadge}>{totalItems}</span>
+              )}
             </Link>
+
+            {!loggedIn ? (
+              <Link to={"/login"} className={navbarStyles.accountLink}>
+                <User className={navbarStyles.accountIcon} />
+                <span className={navbarStyles.accountText}>Account</span>
+              </Link>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className={navbarStyles.accountLink}
+              >
+                <User className={navbarStyles.accountIcon} />
+                <span className={navbarStyles.accountText}>Logout</span>
+              </button>
+            )}
           </div>
         </div>
       </nav>
