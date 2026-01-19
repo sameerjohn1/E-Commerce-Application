@@ -4,6 +4,7 @@ import CategoriesHome from "../components/CategoriesHome";
 import ComingSoonWatchesPage from "../components/ComingSoonWatchesPage";
 import FashionPage from "../components/FashionPage";
 import TestimonialsPage from "../components/TestimonialsPage";
+import Footer from "../components/Footer";
 
 const Home = () => {
   return (
@@ -13,6 +14,7 @@ const Home = () => {
       <ComingSoonWatchesPage />
       <FashionPage />
       <TestimonialsPage />
+      <Footer />
     </div>
   );
 };
