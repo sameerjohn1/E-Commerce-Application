@@ -44,7 +44,7 @@ const formatINR = comingSoonStyles.formatINR;
 
 const ComingSoonWatchesPage = () => {
   return (
-    <setion className={comingSoonStyles.section}>
+    <section className={comingSoonStyles.section}>
       <div className={comingSoonStyles.container}>
         <div className={comingSoonStyles.headerContainer}>
           <div className={comingSoonStyles.titleContainer}>
@@ -91,7 +91,7 @@ const ComingSoonWatchesPage = () => {
           </div>
         </div>
       </div>
-    </setion>
+    </section>
   );
 };
 
