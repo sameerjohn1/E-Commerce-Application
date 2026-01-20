@@ -29,15 +29,18 @@ export function CartProvider({ children }) {
   //to increment value of item in cart
   const increment = (id) => {
     setCart((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, qty: p.qty + 1 } : p))
+      prev.map((p) => (p.id === id ? { ...p, qty: p.qty + 1 } : p)),
     );
   };
 
   //   to decrease the value if 0 then remove from cart
   const decrement = (id) => {
-    prev
-      .map((p) => (p.id === id ? { ...p, qty: p.qty - 1 } : p))
-      .filter((p) => p.qty > 0); //remove the item if qty=0
+    setCart(
+      (prev) =>
+        prev
+          .map((p) => (p.id === id ? { ...p, qty: p.qty - 1 } : p))
+          .filter((p) => p.qty > 0), //remove the item if qty=0
+    );
   };
 
   //to remove item immediately
@@ -73,7 +76,7 @@ export function CartProvider({ children }) {
   const totalItems = cart.reduce((sum, p) => sum + (p.qty || 0), 0);
   const totalPrice = cart.reduce(
     (sum, p) => sum + (p.qty || 0) * parsePrice(p.price),
-    0
+    0,
   );
 
   return (
