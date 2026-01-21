@@ -59,11 +59,10 @@ const Navbar = () => {
     try {
       localStorage.removeItem("isLoggedIn");
       localStorage.removeItem("authToken");
-    } catch {
-      setLoggedIn(false);
-      setOpen(false);
-      navigate("/");
-    }
+    } catch (e) {}
+    setLoggedIn(false);
+    setOpen(false);
+    navigate("/");
   };
   return (
     <header className={navbarStyles.header}>
