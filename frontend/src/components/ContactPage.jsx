@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { contactPageStyles } from "../assets/dummyStyles";
 import {
   AlertCircle,
+  Check,
   Clock,
   IndianRupee,
   Mail,
@@ -22,6 +23,7 @@ function InputWithIcon({
   placeholder,
   error,
   required,
+  type = "text",
 }) {
   return (
     <label className="block">
@@ -32,6 +34,7 @@ function InputWithIcon({
       <div className={contactPageStyles.inputContainer}>
         <div className={contactPageStyles.inputIconContainer}>{icon}</div>
         <input
+          type={type}
           name={name}
           value={value}
           onChange={onChange}
@@ -281,7 +284,8 @@ const ContactPage = () => {
                   <InputWithIcon
                     icon={<Mail className="w-5 h-5 text-black" />}
                     label="Email"
-                    name="Email"
+                    name="email"
+                    type="email"
                     value={form.email}
                     onChange={handleChange}
                     placeholder="your@example.com"
@@ -294,7 +298,7 @@ const ContactPage = () => {
                   <InputWithIcon
                     icon={<Phone className="w-5 h-5 text-black" />}
                     label="Phone"
-                    name="Phone"
+                    name="phone"
                     value={form.phone}
                     onChange={handleChange}
                     placeholder="+923 xxx xxx xxx"
@@ -305,7 +309,7 @@ const ContactPage = () => {
                   <SelectWithIcon
                     icon={<Clock className="w-5 h-5 text-black" />}
                     label="Preferred Contact"
-                    name="ContactMethod"
+                    name="contactMethod"
                     value={form.contactMethod}
                     onChange={handleChange}
                     options={["WhatsApp", "Phone Call", "Email"]}
@@ -329,7 +333,7 @@ const ContactPage = () => {
 
                 <div className={contactPageStyles.inputGrid}>
                   <InputWithIcon
-                    // icon={< className="w-5 h-5 text-green-600" />}
+                    icon={<IndianRupee className="w-5 h-5 text-black" />}
                     label="Estimated Budget"
                     name="budget"
                     value={form.budget}
@@ -344,7 +348,7 @@ const ContactPage = () => {
                       <span className={contactPageStyles.requiredStar}>*</span>
                     </label>
                     <textarea
-                      name="mesage"
+                      name="message"
                       value={form.message}
                       onChange={handleChange}
                       rows={4}
@@ -403,6 +407,29 @@ const ContactPage = () => {
           </div>
         </div>
       </div>
+
+      {/* toast */}
+      {toast && (
+        <div
+          className={`${contactPageStyles.toastBase} ${
+            toast.kind === "error"
+              ? contactPageStyles.toastError
+              : contactPageStyles.toastSuccess
+          }`}
+        >
+          {toast.kind === "success" ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <AlertCircle className="w-4 h-4" />
+          )}
+          <span>{toast.text}</span>
+        </div>
+      )}
+
+      {/* fonts */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&family=Playfair+Display:wght@400;600;700&display=swap');
+      `}</style>
     </div>
   );
 };
