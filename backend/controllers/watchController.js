@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Watch from "../models/watchModel";
+import path from "path";
+import fs from "fs";
 
 const API_BASE = "http://localhost:4000";
 
@@ -69,6 +71,51 @@ export async function getWatches(req, res) {
     });
   } catch (error) {
     console.error("GetWatches error", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+}
+
+// to delete a watch and also remove the linked image from the uploads folder
+export async function deleteWatch(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id)
+      return res.status(400).json({
+        success: false,
+        message: "Id is required",
+      });
+
+    const w = await Watch.findById(id);
+    if (!w)
+      return res.status(404).json({
+        success: false,
+        message: "Watch not found",
+      });
+
+    if (w.image && typeof w.image === "string") {
+      const normalized = w.image.startsWith("/") ? w.image.slice(1) : w.image;
+      if (normalized.startsWith("uploads/")) {
+        const filename = normalized.replace(/^uploads\//, "");
+        const filepath = path.join(process.cwd(), "uploads", filename);
+        fs.unlink(filepath, (err) => {
+          if (err)
+            console.warn(
+              "Failed to unlink image file",
+              filepath,
+              err?.message || err,
+            );
+        });
+      }
+    }
+
+    await Watch.findByIdAndDelete(id);
+
+    return res.json({
+      success: true,
+      message: "Watch Deleted Successfully",
+    });
+  } catch (error) {
+    console.error("DeleteWatches error", error);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 }
