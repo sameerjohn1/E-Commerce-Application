@@ -53,10 +53,58 @@ export async function register(req, res) {
       success: true,
       message: "Account created successfully!",
       token,
-      user: { id: user._id.toString(), name: username, email: user.email },
+      user: { id: user._id.toString(), name: user.name, email: user.email },
     });
   } catch (error) {
     console.error("Registration Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+}
+
+// to login as a user
+export async function login(req, res) {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+
+    const ismatched = await bcrypt.compare(password, user.password);
+    if (!ismatched)
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+
+    const token = jwt.sign({ id: user._id.toString() }, JWT_SECRET, {
+      expiresIn: TOKEN_EXPIRES_IN,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Login Successfuly",
+      token,
+      user: {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Login Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server Error",
