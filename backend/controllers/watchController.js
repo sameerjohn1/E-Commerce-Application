@@ -37,3 +37,38 @@ export async function createWatch(req, res) {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 }
+
+// to fetch the watch
+export async function getWatches(req, res) {
+  try {
+    const { category, sort = "-createdAt", page = 1, limit = 12 } = req.query;
+    const filter = {};
+    //to filter
+    if (typeof category === "string") {
+      const cat = category.trim().toLowerCase();
+      if (cat === "men" || cat === "women") filter.category = cat;
+    }
+
+    const pg = Math.max(1, parseInt(page, 10) || 1);
+    const lim = Math.min(200, parseInt(limit, 10) || 12);
+    const skip = (pg - 1) * lim;
+
+    const total = await Watch.countDocuments(filter);
+    const items = await Watch.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(lim)
+      .lean();
+
+    return res.json({
+      success: true,
+      total,
+      page: pg,
+      limit: lim,
+      items,
+    });
+  } catch (error) {
+    console.error("GetWatches error", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+}
