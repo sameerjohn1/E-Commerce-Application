@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Watch from "../models/watchModel";
+import Watch from "../models/watchModel.js";
 import path from "path";
 import fs from "fs";
 
@@ -116,6 +116,24 @@ export async function deleteWatch(req, res) {
     });
   } catch (error) {
     console.error("DeleteWatches error", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+}
+
+// to get watches by brand
+export async function getWatchesByBrand(req, res) {
+  try {
+    const brandName = req.params.brandName;
+    const items = (await Watch.find({ brandName }))
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({
+      success: true,
+      items,
+    });
+  } catch (error) {
+    console.error("GetWatchesByBrands  error", error);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 }
