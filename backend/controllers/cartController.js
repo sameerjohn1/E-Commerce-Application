@@ -53,3 +53,47 @@ export async function addToCart(req, res) {
     });
   }
 }
+
+// to get the cart item
+export async function getCart(req, res) {
+  try {
+    const userId = req.user?._id;
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const cart = (await cartModel.findOne({ user: userId })) || null;
+    if (!cart || !cart.items.length) {
+      return res.status(200).json({
+        success: true,
+        cart: { items: [] },
+        summary: { totalAmount: 0, tax: 0, shipping: 0, finalAmount: 0 },
+      });
+    }
+
+    const totalAmount = cart.items.reduce((sum, it) => {
+      const p = Number(it.price);
+      const q = Number(it.qty) || 0;
+      return sum + (Number.isFinite(p) ? p : 0) * q;
+    }, 0);
+
+    const taxRate = 0.08;
+    const shipping = 0;
+    const tax = parseFloat((totalAmount * taxRate).toFixed(2));
+    const finalAmount = parseFloat((totalAmount + tax + shipping).toFixed(2));
+
+    return res.status(200).json({
+      success: true,
+      cart,
+      summary: { totalAmount, tax, shipping, finalAmount },
+    });
+  } catch (error) {
+    console.error("getCart error:", error);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Error retrieving cart",
+        error: error.message,
+      });
+  }
+}
