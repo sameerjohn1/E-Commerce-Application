@@ -88,12 +88,59 @@ export async function getCart(req, res) {
     });
   } catch (error) {
     console.error("getCart error:", error);
-    return res
-      .status(500)
-      .json({
+    return res.status(500).json({
+      success: false,
+      message: "Error retrieving cart",
+      error: error.message,
+    });
+  }
+}
+
+// to update the watch in cart
+export async function updateCartItem(req, res) {
+  try {
+    const userId = req.user?._id;
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const { productId, quantity } = req.body;
+    if (!productId || !quantity) {
+      return res.status(400).json({
         success: false,
-        message: "Error retrieving cart",
-        error: error.message,
+        message: "Valid productId and qty are required",
       });
+    }
+
+    const cart = await cartModel.findOne({ user: userId });
+    if (!cart)
+      return res
+        .status(404)
+        .json({ success: false, message: "Cart not found" });
+
+    //to update
+    const idx = cart.items.findIndex(
+      (it) => String(it.productId) === String(productId),
+    );
+    if (idx === -1)
+      return res
+        .status(404)
+        .json({ success: false, message: "Item not found in cart." });
+
+    if (quantity === 0) cart.items.splice(idx, 1);
+    else cart.items[idx].qty = quantity;
+
+    await cart.save();
+    res.status(200).json({
+      success: true,
+      message: "Cart updated successfully",
+      cart,
+    });
+  } catch (error) {
+    console.error("updateCartItem error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating cart",
+      error: error.message,
+    });
   }
 }
