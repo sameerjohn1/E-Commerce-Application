@@ -5,6 +5,7 @@ import { connectDB } from "./config/db.js";
 import userRouter from "./routes/userRoutes.js";
 import watchRouter from "./routes/watchRoutes.js";
 import path from "path";
+import cartRouter from "./routes/cartRoute.js";
 
 const app = express();
 const port = 4000;
@@ -21,6 +22,7 @@ connectDB();
 app.use("/api/auth", userRouter);
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/watches", watchRouter);
+app.use("/api/cart", cartRouter);
 
 app.get("/", (req, res) => {
   res.send("Api working");
