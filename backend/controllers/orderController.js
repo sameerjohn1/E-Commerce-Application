@@ -73,7 +73,7 @@ export const createOrder = async (req, res, next) => {
     if (normalizedPaymentMethod === "Online") {
       const line_items = normalizedItems.map((it) => ({
         price_data: {
-          currency: "inr",
+          currency: "pkr",
           product_data: { name: it.name },
           unit_amount: Math.round(it.price * 100),
         },
@@ -83,7 +83,7 @@ export const createOrder = async (req, res, next) => {
       if (taxAmount > 0) {
         line_items.push({
           price_data: {
-            currency: "inr",
+            currency: "pkr",
             product_data: { name: `Tax (${(taxRate * 100).toFixed(2)}%)` },
             unit_amount: Math.round(taxAmount * 100),
           },
@@ -131,6 +131,56 @@ export const createOrder = async (req, res, next) => {
         .status(err.status)
         .json({ success: false, message: err.message });
     }
+    next(err);
+  }
+};
+
+// to confirm the payment done or not
+export const confirmPayment = async (req, res, next) => {
+  try {
+    const { session_id } = req.params;
+    if (!session_id)
+      return res
+        .status(400)
+        .json({ success: false, message: "Session id is required." });
+
+    if (!stripe)
+      return res
+        .status(500)
+        .json({ success: false, message: "Stripe is not configured." });
+
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    if (!session)
+      return res
+        .status(404)
+        .json({ success: false, message: "Invalid session" });
+
+    if (session.payment_status !== "paid") {
+      return res.status(400).json({
+        success: true,
+        message: "Payment not completed",
+      });
+    }
+
+    const order = await Order.findOne(
+      { sessionId: session_id },
+      {
+        paymentStatus: "Paid",
+        paymentIntentId: session.payment_intent,
+      },
+      { new: true },
+    );
+
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+
+    return res.json({
+      success: true,
+      order,
+    });
+  } catch (err) {
     next(err);
   }
 };
