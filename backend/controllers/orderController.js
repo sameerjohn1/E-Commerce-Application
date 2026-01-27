@@ -253,3 +253,53 @@ export const getUserOrders = async (req, res, next) => {
     });
   }
 };
+
+// to update the order
+export const updateOrder = async (req, res, next) => {
+  try {
+    const { orderStatus } = req.body;
+    if (orderStatus === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Order status is required",
+      });
+    }
+
+    const updated = await Order.findByIdAndUpdate(
+      req.params.id,
+      { orderStatus },
+      { new: true },
+    );
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+    return res.json({
+      success: true,
+      order: updated,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// to delete an order
+export const deleteOrder = async (req, res, next) => {
+  try {
+    const deleted = await Order.findById(req.params.id).lean();
+    if (!deleted)
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+
+    return res.json({
+      success: true,
+      message: "Order deleted successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
