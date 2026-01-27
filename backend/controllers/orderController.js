@@ -231,3 +231,25 @@ export const getOrders = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getUserOrders = async (req, res, next) => {
+  try {
+    if (!req.user?._id)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const orders = await Order.find({ user: req.user._id }).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (err) {
+    console.error("Get User Orders error:");
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
