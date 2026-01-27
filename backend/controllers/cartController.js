@@ -144,3 +144,43 @@ export async function updateCartItem(req, res) {
     });
   }
 }
+
+// to remove watch from cart
+export async function removeCartItem(req, res) {
+  try {
+    const userId = req.user?._id;
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const { productId } = req.params;
+    if (!productId)
+      return res.status(400).json({
+        success: false,
+        message: "productId is required",
+      });
+
+    const cart = await cartModel.findOne({ user: userId });
+    if (!cart)
+      return res
+        .status(404)
+        .json({ success: false, message: "Cart not found" });
+
+    cart.items = cart.items.filter(
+      (it) => String(it.productId) !== String(productId),
+    );
+
+    await cart.save();
+    return res.status(200).json({
+      success: true,
+      message: "Item removed",
+      cart,
+    });
+  } catch (error) {
+    console.error("remove from Cart error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error removing items from cart",
+      error: error.message,
+    });
+  }
+}
