@@ -6,6 +6,7 @@ import userRouter from "./routes/userRoutes.js";
 import watchRouter from "./routes/watchRoutes.js";
 import path from "path";
 import cartRouter from "./routes/cartRoute.js";
+import orderRouter from "./routes/orderRoute.js";
 
 const app = express();
 const port = 4000;
@@ -23,6 +24,7 @@ app.use("/api/auth", userRouter);
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/watches", watchRouter);
 app.use("/api/cart", cartRouter);
+app.use("/api/order", orderRouter);
 
 app.get("/", (req, res) => {
   res.send("Api working");
