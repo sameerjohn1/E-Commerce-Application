@@ -184,3 +184,50 @@ export const confirmPayment = async (req, res, next) => {
     next(err);
   }
 };
+
+// to get orders
+export const getOrders = async (req, res, next) => {
+  try {
+    const { search = "", status } = req.query;
+    const filter = {};
+    if (status) filter.orderStatus = status;
+
+    // acts as a filter
+    if (search) {
+      const regex = new RegExp(search, "i");
+      filter.$or = [
+        { orderId: regex },
+        { name: regex },
+        { email: regex },
+        { "items.name": regex },
+      ];
+    }
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
+
+    const counts = orders.reduce(
+      (acc, o) => {
+        acc.totalOrders += 1;
+        acc[o.orderStatus] = (acc[o.orderStatus] || 0) + 1;
+        if (o.paymentStatus === "Unpaid") acc.pendingPayment += 1;
+        return acc;
+      },
+      { totalOrders: 0, pendingPayment: 0 },
+    );
+
+    return res.json({
+      success: true,
+      counts: {
+        totalOrders: counts.totalOrders,
+        pending: counts.Pending || 0,
+        processing: counts.Processing || 0,
+        shipped: counts.Shipped || 0,
+        delivered: counts.Delivered || 0,
+        cancelled: counts.Cancelled || 0,
+        pendingPayment: counts.pendingPayment,
+      },
+      orders,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
