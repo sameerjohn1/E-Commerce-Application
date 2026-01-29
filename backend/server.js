@@ -24,7 +24,7 @@ app.use("/api/auth", userRouter);
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/watches", watchRouter);
 app.use("/api/cart", cartRouter);
-app.use("/api/order", orderRouter);
+app.use("/api/orders", orderRouter);
 
 app.get("/", (req, res) => {
   res.send("Api working");
