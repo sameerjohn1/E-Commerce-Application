@@ -8,6 +8,7 @@ const navItems = [
   { name: "Home", href: "/" },
   { name: "Watches", href: "/watches" },
   { name: "Contact", href: "/contact" },
+  { name: "My Orders", href: "/my-orders" },
 ];
 
 const Navbar = () => {
@@ -16,7 +17,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [active, setActive] = useState(location.pathname || "/");
 
-  const { totalItems } = useCart();
+  const { totalItems, clearCart, reloadCart } = useCart();
   const [loggedIn, setLoggedIn] = useState(() => {
     try {
       return (
@@ -55,11 +56,28 @@ const Navbar = () => {
     setOpen(false);
   };
 
+  useEffect(() => {
+    try {
+      reloadCart();
+    } catch (e) {
+      // ignore
+    }
+  }, [loggedIn]);
+
   const handleLogout = () => {
     try {
       localStorage.removeItem("isLoggedIn");
       localStorage.removeItem("authToken");
+      location.removeItem("user");
+      localStorage.removeItem("cart");
+      localStorage.removeItem("cartItems");
     } catch (e) {}
+
+    try {
+      clearCart && clearCart();
+    } catch (e) {
+      // ignore
+    }
     setLoggedIn(false);
     setOpen(false);
     navigate("/");

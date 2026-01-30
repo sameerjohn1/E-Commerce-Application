@@ -3,6 +3,8 @@ import { loginPageStyles } from "../assets/dummyStyles";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { ArrowLeft, Eye, EyeOff, Lock, User } from "lucide-react";
+import { useCart } from "../CartContext";
+import axios from "axios";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -10,8 +12,12 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
+  const { loadCart } = useCart();
 
-  const handleSubmit = (e) => {
+  const API_BASE = "http://localhost:4000";
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Basic form validation
@@ -33,47 +39,93 @@ const LoginPage = () => {
       return;
     }
 
-    // === NEW: log all form data to the console ===
-    // NOTE: Logging passwords is fine for development/testing only. Remove before production.
-    console.log("Login form submitted — form data:", {
-      email,
-      password,
-      rememberMe,
-      showPassword,
-      timestamp: new Date().toISOString(),
-    });
+    setSubmitting(true);
 
-    // Simulate a successful login: store auth info in localStorage so Navbar can detect it
     try {
-      // create a simple fake token for demo (replace with real token from server in production)
-      const fakeToken = btoa(`${email}:${Date.now()}`);
+      const resp = await axios.post(
+        `${API_BASE}/api/auth/login`,
+        {
+          email: email.trim().toLowerCase(),
+          password,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
 
-      // Persist token & login flag (Navbar checks these keys)
-      localStorage.setItem("authToken", fakeToken);
-      localStorage.setItem("isLoggedIn", "true");
+      const data = resp.data;
+      console.log(data);
 
-      try {
-        window.dispatchEvent(
-          new CustomEvent("authChanged", { detail: { loggedIn: true } }),
-        );
-      } catch (err) {
-        // ignore if browser doesn't allow CustomEvent construction in this environment
+      if (data && data.token) {
+        if (rememberMe) {
+          localStorage.setItem("authToken", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user ?? {}));
+          localStorage.setItem("isLoggedIn", "true");
+        } else {
+          sessionStorage.setItem("authToken", data.token);
+          sessionStorage.setItem("user", JSON.stringify(data.user ?? {}));
+          sessionStorage.setItem("isLoggedIn", "true");
+        }
+
+        try {
+          window.dispatchEvent(
+            new CustomEvent("autoChanged", { detail: { loggedIn: true } }),
+          );
+        } catch (err) {
+          // ignore
+        }
+
+        // Show success toast
+        toast.success("Login successful!", {
+          position: "top-right",
+          autoClose: 1200,
+          theme: "light",
+        });
+
+        // Redirect to home after short delay so user sees the toast
+        setTimeout(() => {
+          navigate("/");
+        }, 1250);
+      } else {
+        toast.error(data.message || "Unpexted error coming from the server", {
+          postion: "top-right",
+          autoClose: 4000,
+          theme: "light",
+        });
       }
     } catch (err) {
-      // ignore storage errors
+      const serverMsg = err?.response?.data?.message;
+      const status = err?.response?.status;
+
+      if (status === 401) {
+        toast.error(serverMsg || "Invalid email or password.", {
+          position: "top-right",
+          autoClose: 4000,
+          theme: "light",
+        });
+      } else if (status === 409) {
+        toast.error(serverMsg || "Conflict: user exists.", {
+          position: "top-right",
+          autoClose: 4000,
+          theme: "light",
+        });
+      } else if (serverMsg) {
+        toast.error(serverMsg, {
+          position: "top-right",
+          autoClose: 4000,
+          theme: "light",
+        });
+      } else {
+        toast.error("Server error. Please try again later.", {
+          position: "top-right",
+          autoClose: 4000,
+          theme: "light",
+        });
+      }
+      console.error("Login error:", err?.response ?? err);
+    } finally {
+      setSubmitting(false);
     }
-
-    // Show success toast
-    toast.success("Login successful!", {
-      position: "top-right",
-      autoClose: 1200,
-      theme: "light",
-    });
-
-    // Redirect to home after short delay so user sees the toast
-    setTimeout(() => {
-      navigate("/");
-    }, 1250);
   };
 
   return (
@@ -118,6 +170,7 @@ const LoginPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={submitting}
                 />
               </div>
             </div>
@@ -138,6 +191,7 @@ const LoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={submitting}
                 />
 
                 <button
@@ -162,6 +216,7 @@ const LoginPage = () => {
                   className={loginPageStyles.checkbox}
                   checked={rememberMe}
                   onChange={() => setRememberMe(!rememberMe)}
+                  disabled={submitting}
                 />
               </div>
               <div className={loginPageStyles.checkboxLabelContainer}>
@@ -175,8 +230,11 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <button type="submit" className={loginPageStyles.submitButton}>
-              Login
+            <button
+              type="submit"
+              className={`${loginPageStyles.submitButton} ${submitting ? loginPageStyles.submitButtonDisabled : ""}`}
+            >
+              {submitting ? "Sign in..." : "Login"}
             </button>
           </form>
 
