@@ -124,7 +124,9 @@ export async function deleteWatch(req, res) {
 export async function getWatchesByBrand(req, res) {
   try {
     const brandName = req.params.brandName;
-    const items = (await Watch.find({ brandName }))
+    const items = await Watch.find({
+      brandName: { $regex: new RegExp(`^${brandName}$`, "i") },
+    })
       .sort({ createdAt: -1 })
       .lean();
 

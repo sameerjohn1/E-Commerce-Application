@@ -254,14 +254,14 @@ const ManageBooking = () => {
                         <select
                           value={b.status}
                           onChange={(e) => updateStatus(b.id, e.target.value)}
-                          disabled={isCancelled}
+                          disabled={cancelled}
                           title={
-                            isCancelled
+                            cancelled
                               ? "Cannot update status of a cancelled booking"
                               : "Change booking status"
                           }
                           className={`${bookingStyles.statusSelect} ${
-                            isCancelled
+                            cancelled
                               ? bookingStyles.statusSelectDisabled
                               : bookingStyles.statusSelectEnabled
                           }`}
