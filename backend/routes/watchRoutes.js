@@ -27,6 +27,6 @@ const upload = multer({ storage });
 watchRouter.post("/", upload.single("image"), createWatch);
 watchRouter.get("/", getWatches);
 watchRouter.delete("/:id", deleteWatch);
-watchRouter.get("/brand/:brandName", getWatchesByBrand);
+watchRouter.get("/brands/:brandName", getWatchesByBrand);
 
 export default watchRouter;
