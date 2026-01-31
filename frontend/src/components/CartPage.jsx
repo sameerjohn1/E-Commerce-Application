@@ -1,20 +1,85 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import cartPageStyles from "../assets/dummyStyles";
 import { useCart } from "../CartContext";
 import { toast, ToastContainer } from "react-toastify";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+
+const API_BASE = "http://localhost:4000";
+
+function CartProduct({ item }) {
+  const { increment, decrement, removeItem } = useCart();
+  const [localQty, setLocalQty] = useState(item.qty ?? 1);
+
+  useEffect(() => {
+    setLocalQty(Number(item.qty ?? item.quantity ?? 1));
+  }, [item.qty, item.quantity]);
+
+  const onInc = () => {
+    setLocalQty((q) => (Number.isFinite(q) ? q + 1 : 1));
+    increment(item.id);
+  };
+
+  const onDec = () => {
+    const currentQty = item.qty ?? localQty;
+    if (currentQty <= 1) {
+      removeItem(item.id);
+      return;
+    }
+    setLocalQty((q) => (Number.isFinite(q) ? q - 1 : currentQty - 1));
+    decrement(item.id);
+  };
+
+  return (
+    <div className={cartPageStyles.cartItemCard}>
+      <div className={cartPageStyles.cartItemImageContainer}>
+        <img
+          src={item.img}
+          alt={item.name}
+          className={cartPageStyles.cartItemImage}
+        />
+      </div>
+      <div className={cartPageStyles.cartItemContent}>
+        <h3 className={cartPageStyles.cartItemName}>{item.name}</h3>
+        <p className={cartPageStyles.cartItemPrice}>{item.price}</p>
+
+        <div className={cartPageStyles.quantityContainer}>
+          <div className={cartPageStyles.quantityControls}>
+            <button
+              onClick={onDec}
+              className={cartPageStyles.quantityButton}
+              aria-label={`Decrease ${item.name} quantity`}
+            >
+              <Minus size={16} />
+            </button>
+
+            <span className={cartPageStyles.quantityText}>{localQty}</span>
+
+            <button
+              onClick={onInc}
+              className={cartPageStyles.quantityButton}
+              aria-label={`Increase ${item.name} quantity`}
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+
+          <button
+            onClick={() => removeItem(item.id)}
+            className={cartPageStyles.removeButton}
+            aria-label={`Remove ${item.name}`}
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CartPage = () => {
-  const {
-    cart,
-    increment,
-    decrement,
-    removeItem,
-    clearCart,
-    totalItems,
-    totalPrice,
-  } = useCart();
+  const { cart, clearCart, totalItems, totalPrice } = useCart();
 
   // checkout form state
   const [name, setName] = useState("");
@@ -23,6 +88,7 @@ const CartPage = () => {
   const [mobile, setMobile] = useState("");
   const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleMobileChange = (e) => {
     const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 11); // limit to 11 digits
@@ -44,50 +110,87 @@ const CartPage = () => {
     return emailOk && phoneOk;
   };
 
-  const processPayment = (method) => {
-    if (method === "Cash on Delivery") return true;
-    if (method === "Online") {
-      return Math.random() < 0.75;
-    }
-    return false;
-  };
-
-  const handleSubmit = (e) => {
+  // tp submit the data to the clear the cart
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!isFormValid()) {
       toast.error("Please fill all required fields correctly.", {
         position: "top-right",
       });
       return;
     }
-
     if (!cart.length) {
       toast.error("Your cart is empty.", { position: "top-right" });
       return;
     }
 
-    const paymentOk = processPayment(paymentMethod);
-
-    if (paymentOk) {
-      clearCart();
-
-      setName("");
-      setEmail("");
-      setAddress("");
-      setMobile("");
-      setNote("");
-      setPaymentMethod("");
-
-      toast.success("Payment successful — order completed.", {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      toast.error("Please log in to place the order.", {
         position: "top-right",
       });
       return;
-    } else {
-      toast.error("Payment failed. Please try again.", {
+    }
+
+    const itemsPayload = cart.map((it) => ({
+      productId: it.productId ?? it.id,
+      name: it.name,
+      img: it.img,
+      price: Number(it.price ?? 0),
+      qty: Number(it.qty ?? it.quantity ?? 1),
+    }));
+
+    const body = {
+      name,
+      email,
+      phoneNumber: mobile,
+      address,
+      notes: note,
+      paymentMethod,
+      items: itemsPayload,
+    };
+
+    setSubmitting(true);
+    try {
+      const res = await axios.post(`${API_BASE}/api/orders`, body, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res?.data?.success) {
+        const checkoutUrl = res.data.checkoutUrl ?? null;
+        clearCart();
+        if (checkoutUrl) {
+          toast.info("Redirecting to payment...", { position: "top-right" });
+          window.location.href = checkoutUrl;
+          return;
+        }
+        setName("");
+        setEmail("");
+        setAddress("");
+        setMobile("");
+        setNote("");
+        setPaymentMethod("");
+        toast.success("Order placed successfully.", { position: "top-right" });
+        return;
+      }
+
+      toast.error(res?.data?.message ?? "Failed to create order", {
         position: "top-right",
       });
-      return;
+    } catch (err) {
+      const status = err?.response?.status;
+      const serverMsg = err?.response?.data?.message;
+      if (status === 401) {
+        toast.error("Authentication error — please log in again.", {
+          position: "top-right",
+        });
+      } else {
+        toast.error(serverMsg ?? "Failed to create order. Try again later.", {
+          position: "top-right",
+        });
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -208,9 +311,10 @@ const CartPage = () => {
                   <div className={cartPageStyles.formButtonsContainer}>
                     <button
                       type="submit"
+                      disabled={submitting}
                       className={cartPageStyles.submitButton}
                     >
-                      Submit Order
+                      {submitting ? "Submitting..." : "Submit Order"}
                     </button>
 
                     <Link
@@ -225,54 +329,7 @@ const CartPage = () => {
               {/* Cart Items */}
               <div className={cartPageStyles.cartItemsGrid}>
                 {cart.map((item) => (
-                  <div key={item.id} className={cartPageStyles.cartItemCard}>
-                    <div className={cartPageStyles.cartItemImageContainer}>
-                      <img
-                        src={item.img}
-                        alt={item.name}
-                        className={cartPageStyles.cartItemImage}
-                      />
-                    </div>
-
-                    <div className={cartPageStyles.cartItemContent}>
-                      <h3 className={cartPageStyles.cartItemName}>
-                        {item.name}
-                      </h3>
-                      <p className={cartPageStyles.cartItemPrice}>
-                        {item.price}
-                      </p>
-
-                      <div className={cartPageStyles.quantityContainer}>
-                        <div className={cartPageStyles.quantityControls}>
-                          <button
-                            onClick={() => decrement(item.id)}
-                            className={cartPageStyles.quantityButton}
-                            aria-label={`Decrease ${item.name} quantity`}
-                          >
-                            <Minus size={16} />
-                          </button>
-                          <span className={cartPageStyles.quantityText}>
-                            {item.qty}
-                          </span>
-                          <button
-                            onClick={() => increment(item.id)}
-                            className={cartPageStyles.quantityButton}
-                            aria-label={`Increase ${item.name} quantity`}
-                          >
-                            <Plus size={16} />
-                          </button>
-                        </div>
-
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          className={cartPageStyles.removeButton}
-                          aria-label={`Remove ${item.name}`}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <CartProduct key={item.id} item={item} />
                 ))}
               </div>
             </div>

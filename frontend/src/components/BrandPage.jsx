@@ -110,7 +110,7 @@ const BrandPage = () => {
 
   if (!brandWatches.length) {
     return (
-      <div className={brandPageStyles.notFoundContainer}>
+      <div className="h-screen w-full flex justify-center items-center">
         <div className={brandPageStyles.notFoundCard}>
           <h2 className={brandPageStyles.notFoundTitle}>No watches found</h2>
           <p className={brandPageStyles.notFoundText}>
