@@ -8,6 +8,8 @@ import Watch from "./pages/Watch";
 import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
 import { ArrowUp } from "lucide-react";
+import Orders from "./pages/Orders";
+import VerifyPaymentPage from "../VerifyPaymentPage";
 
 function ScrollToTopOnRouteChange() {
   const { pathname } = useLocation();
@@ -96,6 +98,18 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/my-orders"
+          element={
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/orders/success" element={<VerifyPaymentPage />} />
+        <Route path="/orders/cancel" element={<VerifyPaymentPage />} />
       </Routes>
 
       <button

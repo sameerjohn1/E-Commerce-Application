@@ -288,7 +288,7 @@ export const updateOrder = async (req, res, next) => {
 // to delete an order
 export const deleteOrder = async (req, res, next) => {
   try {
-    const deleted = await Order.findById(req.params.id).lean();
+    const deleted = await Order.findByIdAndDelete(req.params.id);
     if (!deleted)
       return res.status(404).json({
         success: false,
