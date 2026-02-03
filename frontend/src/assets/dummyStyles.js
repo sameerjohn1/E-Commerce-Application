@@ -798,6 +798,75 @@ export { testimonialPageStyles };
 
 // Add these styles to your existing dummyStyles.js file
 
+export const ordersPageStyles = {
+  // Page layout
+  pageContainer: "min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8",
+  innerContainer: "max-w-4xl mx-auto",
+
+  // Header
+  headerContainer: "flex items-center justify-between mb-8",
+  titleContainer: "text-3xl font-bold text-gray-900 flex items-center gap-3",
+  titleIcon: "w-8 h-8 text-gray-700",
+  refreshButton:
+    "px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm",
+
+  // Status/Messages
+  loadingText: "text-center py-10 text-gray-500 text-lg",
+  errorText: "text-center py-10 text-red-500 text-lg",
+
+  // Orders container
+  ordersContainer: "space-y-6",
+  emptyStateContainer: "text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100",
+  emptyStateText: "text-gray-500 text-lg",
+
+  // Order card
+  orderCard: "bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden",
+  orderHeader: "p-6 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4",
+  orderTitle: "text-lg font-semibold text-gray-900",
+  orderDateContainer: "flex items-center gap-2 text-sm text-gray-500 mt-1",
+  orderDateIcon: "w-4 h-4",
+
+  // Status and Actions
+  statusAndActions: "flex flex-wrap items-center gap-3",
+  statusBadgeBase: "px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider",
+  statusPending: "bg-yellow-100 text-yellow-800",
+  statusCompleted: "bg-green-100 text-green-800",
+  statusCancelled: "bg-red-100 text-red-800",
+  statusProcessing: "bg-blue-100 text-blue-800",
+  statusFailed: "bg-rose-100 text-rose-800",
+  statusRefunded: "bg-purple-100 text-purple-800",
+  statusDefault: "bg-gray-100 text-gray-800",
+
+  // Buttons
+  toggleButton: "flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors",
+  toggleIcon: "w-4 h-4",
+  cancelButtonBase: "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+  cancelButtonEnabled: "bg-red-50 text-red-600 hover:bg-red-100",
+  cancelButtonDisabled: "bg-gray-50 text-gray-400 cursor-not-allowed",
+
+  // Expanded items
+  itemsGrid: "p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50",
+  itemCard: "flex items-center gap-4 bg-white p-3 rounded-xl border border-gray-100",
+  itemImage: "w-16 h-16 object-cover rounded-lg bg-gray-100",
+  itemNoImage: "w-16 h-16 flex items-center justify-center bg-gray-100 rounded-lg text-[10px] text-gray-400 uppercase",
+  itemDetails: "flex-1 min-w-0",
+  itemName: "text-sm font-medium text-gray-900 truncate",
+  itemPrice: "text-xs text-gray-500 mt-0.5",
+  itemQuantity: "text-xs text-gray-400",
+
+  // Delivery details
+  deliveryDetailsContainer: "p-6 border-t border-gray-50 bg-white",
+  deliveryTitle: "text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2",
+  deliveryIcon: "w-4 h-4 text-gray-400",
+  deliveryGrid: "grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8 text-sm",
+  deliveryLabel: "text-gray-500 font-normal",
+
+  // Footer / Total
+  totalContainer: "p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-between",
+  totalLabel: "text-base font-semibold text-gray-900",
+  totalAmount: "text-xl font-bold text-gray-900",
+};
+
 export const watchPageStyles = {
   // Layout
   container: "px-6 sm:px-8 md:px-12 lg:px-24 py-12 bg-white min-h-screen",
